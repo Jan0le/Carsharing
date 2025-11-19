@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "Carsharing.Blazor/1.0.0": {
+        "runtime": {
+          "Carsharing.Blazor.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Carsharing.Blazor/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

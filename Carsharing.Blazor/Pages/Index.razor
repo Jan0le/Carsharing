@@ -1,9 +1,96 @@
 ﻿@page "/"
+@inject IVehicleService VehicleService
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Carsharing - Startseite</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+                <h1 class="display-4">🚗 Willkommen bei Carsharing</h1>
+                <p class="lead">Teile Fahrzeuge, spare Geld, schone die Umwelt</p>
+            </div>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Verfügbare Fahrzeuge</h2>
+            @if (availableVehicles == null)
+            {
+                <p>Lade Fahrzeuge...</p>
+            }
+            else if (availableVehicles.Count == 0)
+            {
+                <div class="alert alert-warning">
+                    <strong>Keine Fahrzeuge verfügbar</strong>
+                    <p>Derzeit sind keine Fahrzeuge verfügbar. Bitte versuchen Sie es später erneut.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var vehicle in availableVehicles)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">@vehicle.Model</h5>
+                                    <p class="card-text">
+                                        <strong>Kennzeichen:</strong> @vehicle.LicensePlate<br/>
+                                        <strong>Standort:</strong> @vehicle.CurrentLocation<br/>
+                                        <span class="badge bg-success">@vehicle.Status</span>
+                                    </p>
+                                    <a href="/vehicles" class="btn btn-primary">Details anzeigen</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Schnellzugriff</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/vehicles" class="list-group-item list-group-item-action">
+                        <strong>🚗 Fahrzeuge</strong>
+                        <p class="mb-0 small">Alle verfügbaren Fahrzeuge anzeigen</p>
+                    </a>
+                    <a href="/bookings" class="list-group-item list-group-item-action">
+                        <strong>📅 Buchungen</strong>
+                        <p class="mb-0 small">Neue Buchung erstellen</p>
+                    </a>
+                    <a href="/participants" class="list-group-item list-group-item-action">
+                        <strong>👥 Teilnehmer</strong>
+                        <p class="mb-0 small">Teilnehmer verwalten</p>
+                    </a>
+                    <a href="/payments" class="list-group-item list-group-item-action">
+                        <strong>💳 Zahlungen</strong>
+                        <p class="mb-0 small">Zahlungshistorie anzeigen</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Vehicle>? availableVehicles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVehicles();
+    }
+
+    private async Task LoadVehicles()
+    {
+        await Task.Run(() =>
+        {
+            availableVehicles = VehicleService.GetAvailableVehicles();
+        });
+    }
+}

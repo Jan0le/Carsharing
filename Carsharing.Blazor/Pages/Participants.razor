@@ -1,0 +1,80 @@
+@page "/participants"
+@inject IParticipantService ParticipantService
+
+<PageTitle>Teilnehmer - Carsharing</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>👥 Teilnehmer</h2>
+        </div>
+    </div>
+
+    @if (participants == null)
+    {
+        <p>Lade Teilnehmer...</p>
+    }
+    else if (participants.Count == 0)
+    {
+        <div class="alert alert-info">
+            <strong>Keine Teilnehmer gefunden</strong>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vorname</th>
+                            <th>Nachname</th>
+                            <th>Email</th>
+                            <th>Geburtsdatum</th>
+                            <th>Gewicht</th>
+                            <th>Größe</th>
+                            <th>Registriert am</th>
+                            <th>Aktualisiert am</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var participant in participants)
+                        {
+                            <tr>
+                                <td>@participant.ParticipantId</td>
+                                <td>@participant.FirstName</td>
+                                <td>@participant.LastName</td>
+                                <td>@participant.Email</td>
+                                <td>@(participant.BirthDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                <td>@(participant.Weight?.ToString("F1") ?? "-") @(participant.Weight.HasValue ? "kg" : "")</td>
+                                <td>@(participant.Height?.ToString("F1") ?? "-") @(participant.Height.HasValue ? "cm" : "")</td>
+                                <td>@participant.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                <td>@participant.UpdatedAt.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Participant>? participants;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadParticipants();
+    }
+
+    private async Task LoadParticipants()
+    {
+        await Task.Run(() =>
+        {
+            participants = ParticipantService.GetAllParticipants();
+        });
+        StateHasChanged();
+    }
+}
+

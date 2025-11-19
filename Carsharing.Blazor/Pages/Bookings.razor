@@ -1,0 +1,327 @@
+@page "/bookings"
+@inject IBookingService BookingService
+@inject IVehicleService VehicleService
+@inject IParticipantService ParticipantService
+@inject IPaymentService PaymentService
+
+<PageTitle>Buchungen - Carsharing</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>📅 Buchungen</h2>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" @onclick="() => statusMessage = string.Empty"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Neue Buchung erstellen</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@bookingModel" OnValidSubmit="@HandleSubmit">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Fahrzeug auswählen</label>
+                            <InputSelect class="form-select" @bind-Value="bookingModel.VehicleId">
+                                <option value="0">-- Bitte wählen --</option>
+                                @foreach (var vehicle in availableVehicles)
+                                {
+                                    <option value="@vehicle.VehicleId">@vehicle.Model (@vehicle.LicensePlate) - @vehicle.CurrentLocation</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => bookingModel.VehicleId)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teilnehmer auswählen</label>
+                            <InputSelect class="form-select" @bind-Value="bookingModel.ParticipantId">
+                                <option value="0">-- Bitte wählen --</option>
+                                @foreach (var participant in participants)
+                                {
+                                    <option value="@participant.ParticipantId">@participant.FirstName @participant.LastName (@participant.Email)</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => bookingModel.ParticipantId)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Startdatum</label>
+                                <InputDate class="form-control" @bind-Value="startDate" @bind-Value:after="UpdateDateTime" />
+                                <label class="form-label mt-2">Startzeit</label>
+                                <InputText type="time" class="form-control" @bind-Value="startTime" @bind-Value:after="UpdateDateTime" />
+                                <ValidationMessage For="@(() => bookingModel.StartTime)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Enddatum</label>
+                                <InputDate class="form-control" @bind-Value="endDate" @bind-Value:after="UpdateDateTime" />
+                                <label class="form-label mt-2">Endzeit</label>
+                                <InputText type="time" class="form-control" @bind-Value="endTime" @bind-Value:after="UpdateDateTime" />
+                                <ValidationMessage For="@(() => bookingModel.EndTime)" />
+                            </div>
+                        </div>
+
+                        @if (calculatedPrice > 0)
+                        {
+                            <div class="alert alert-info">
+                                <strong>Berechneter Preis:</strong> @calculatedPrice.ToString("C")
+                                <br/>
+                                <small>@CalculateHours() Stunden × 5€/Stunde</small>
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Buchung erstellen
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5>Informationen</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Preis:</strong> 5€ pro Stunde</p>
+                    <p><strong>Verfügbare Fahrzeuge:</strong> @availableVehicles.Count</p>
+                    <p><strong>Registrierte Teilnehmer:</strong> @participants.Count</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Meine Buchungen</h5>
+                </div>
+                <div class="card-body">
+                    @if (userBookings == null || userBookings.Count == 0)
+                    {
+                        <p class="text-muted">Keine Buchungen vorhanden</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var booking in userBookings)
+                            {
+                                <li class="list-group-item">
+                                    <strong>Buchung #@booking.BookingId</strong><br/>
+                                    <small>Fahrzeug: @booking.VehicleId | Status: 
+                                        @if (booking.BookingStatus == "Confirmed")
+                                        {
+                                            <span class="badge bg-success">Bestätigt</span>
+                                        }
+                                        else if (booking.BookingStatus == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Ausstehend</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">@booking.BookingStatus</span>
+                                        }
+                                    </small><br/>
+                                    <small>@booking.StartTime.ToString("dd.MM.yyyy HH:mm") - @booking.EndTime.ToString("dd.MM.yyyy HH:mm")</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Vehicle> availableVehicles = new();
+    private List<Participant> participants = new();
+    private List<Booking>? userBookings = new();
+    private BookingFormModel bookingModel = new();
+    private decimal calculatedPrice = 0;
+    private bool isProcessing = false;
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
+    
+    private DateTime startDate = DateTime.Now;
+    private string startTime = DateTime.Now.ToString("HH:mm");
+    private DateTime endDate = DateTime.Now.AddHours(1);
+    private string endTime = DateTime.Now.AddHours(1).ToString("HH:mm");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        await Task.Run(() =>
+        {
+            availableVehicles = VehicleService.GetAvailableVehicles();
+            participants = ParticipantService.GetAllParticipants();
+        });
+        StateHasChanged();
+    }
+
+    private void UpdateDateTime()
+    {
+        if (DateTime.TryParse($"{startDate:yyyy-MM-dd} {startTime}", out DateTime start) &&
+            DateTime.TryParse($"{endDate:yyyy-MM-dd} {endTime}", out DateTime end))
+        {
+            bookingModel.StartTime = start;
+            bookingModel.EndTime = end;
+            CalculatePrice();
+        }
+    }
+
+    private void CalculatePrice()
+    {
+        if (bookingModel.StartTime != default && bookingModel.EndTime != default && bookingModel.EndTime > bookingModel.StartTime)
+        {
+            TimeSpan duration = bookingModel.EndTime - bookingModel.StartTime;
+            calculatedPrice = (decimal)(duration.TotalHours * 5.0);
+        }
+        else
+        {
+            calculatedPrice = 0;
+        }
+    }
+
+    private double CalculateHours()
+    {
+        if (bookingModel.StartTime != default && bookingModel.EndTime != default && bookingModel.EndTime > bookingModel.StartTime)
+        {
+            TimeSpan duration = bookingModel.EndTime - bookingModel.StartTime;
+            return duration.TotalHours;
+        }
+        return 0;
+    }
+
+    private async Task HandleSubmit()
+    {
+        isProcessing = true;
+        statusMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            // Validierung
+            if (bookingModel.VehicleId == 0)
+            {
+                statusMessage = "Bitte wählen Sie ein Fahrzeug aus.";
+                isSuccess = false;
+                isProcessing = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (bookingModel.ParticipantId == 0)
+            {
+                statusMessage = "Bitte wählen Sie einen Teilnehmer aus.";
+                isSuccess = false;
+                isProcessing = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Aktualisiere DateTime vor Validierung
+            UpdateDateTime();
+            
+            if (bookingModel.EndTime <= bookingModel.StartTime)
+            {
+                statusMessage = "Die Endzeit muss nach der Startzeit liegen.";
+                isSuccess = false;
+                isProcessing = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Schritt 1: Fahrzeug auswählen → VehicleService liefert verfügbare Fahrzeuge
+            var vehicle = VehicleService.GetVehicle(bookingModel.VehicleId);
+            if (vehicle == null || vehicle.Status != "Available")
+            {
+                statusMessage = "Das ausgewählte Fahrzeug ist nicht verfügbar.";
+                isSuccess = false;
+                isProcessing = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Schritt 2: Buchung wird angelegt → BookingService prüft Fahrzeugstatus
+            // Schritt 3: Nutzer wird zugeordnet → ParticipantService
+            // Schritt 4: Zahlung → PaymentService
+            // Schritt 5: Nach erfolgreicher Zahlung → BookingService bestätigt Buchung, VehicleService aktualisiert Status
+            bool success = await Task.Run(() => 
+                BookingService.CreateBooking(
+                    bookingModel.VehicleId,
+                    bookingModel.ParticipantId,
+                    bookingModel.StartTime,
+                    bookingModel.EndTime
+                )
+            );
+
+            if (success)
+            {
+                statusMessage = $"Buchung erfolgreich erstellt! Fahrzeug {vehicle.Model} wurde für Sie reserviert.";
+                isSuccess = true;
+                
+                // Formular zurücksetzen
+                bookingModel = new BookingFormModel();
+                calculatedPrice = 0;
+                
+                // Daten neu laden
+                await LoadData();
+                
+                // Buchungen des Teilnehmers laden
+                await LoadUserBookings();
+            }
+            else
+            {
+                statusMessage = "Buchung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Fehler: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadUserBookings()
+    {
+        if (bookingModel.ParticipantId > 0)
+        {
+            await Task.Run(() =>
+            {
+                userBookings = BookingService.GetUserBookings(bookingModel.ParticipantId);
+            });
+        }
+    }
+
+    public class BookingFormModel
+    {
+        public int VehicleId { get; set; }
+        public int ParticipantId { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.Now;
+        public DateTime EndTime { get; set; } = DateTime.Now.AddHours(1);
+    }
+}

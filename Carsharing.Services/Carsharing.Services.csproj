@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Carsharing.Models\Carsharing.Models.csproj" />
+    <ProjectReference Include="..\Carsharing.Data\Carsharing.Data.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,199 @@
+@page "/profile"
+@inject IParticipantService ParticipantService
+
+<PageTitle>Profil - Carsharing</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>👤 Benutzerprofil</h2>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" @onclick="() => statusMessage = string.Empty"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Mein Profil</h5>
+                </div>
+                <div class="card-body">
+                    @if (currentParticipant == null)
+                    {
+                        <p class="text-muted">Bitte wählen Sie ein Profil aus oder erstellen Sie ein neues.</p>
+                    }
+                    else
+                    {
+                        <dl class="row">
+                            <dt class="col-sm-4">ID:</dt>
+                            <dd class="col-sm-8">@currentParticipant.ParticipantId</dd>
+                            
+                            <dt class="col-sm-4">Vorname:</dt>
+                            <dd class="col-sm-8">@currentParticipant.FirstName</dd>
+                            
+                            <dt class="col-sm-4">Nachname:</dt>
+                            <dd class="col-sm-8">@currentParticipant.LastName</dd>
+                            
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">@currentParticipant.Email</dd>
+                            
+                            @if (currentParticipant.BirthDate.HasValue)
+                            {
+                                <dt class="col-sm-4">Geburtsdatum:</dt>
+                                <dd class="col-sm-8">@currentParticipant.BirthDate.Value.ToString("dd.MM.yyyy")</dd>
+                            }
+                            
+                            @if (currentParticipant.Weight.HasValue)
+                            {
+                                <dt class="col-sm-4">Gewicht:</dt>
+                                <dd class="col-sm-8">@currentParticipant.Weight.Value.ToString("F1") kg</dd>
+                            }
+                            
+                            @if (currentParticipant.Height.HasValue)
+                            {
+                                <dt class="col-sm-4">Größe:</dt>
+                                <dd class="col-sm-8">@currentParticipant.Height.Value.ToString("F1") cm</dd>
+                            }
+                            
+                            <dt class="col-sm-4">Registriert am:</dt>
+                            <dd class="col-sm-8">@currentParticipant.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                            
+                            <dt class="col-sm-4">Aktualisiert am:</dt>
+                            <dd class="col-sm-8">@currentParticipant.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Profil auswählen / Anmelden</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Bestehendes Profil auswählen</label>
+                        <InputSelect class="form-select" @bind-Value="selectedParticipantId" @bind-Value:after="LoadParticipant">
+                            <option value="0">-- Bitte wählen --</option>
+                            @foreach (var participant in participants)
+                            {
+                                <option value="@participant.ParticipantId">@participant.FirstName @participant.LastName (@participant.Email)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    
+                    <hr/>
+                    
+                    <h6>Neues Profil erstellen</h6>
+                    <EditForm Model="@newParticipant" OnValidSubmit="@CreateParticipant">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Vorname</label>
+                            <InputText class="form-control" @bind-Value="newParticipant.FirstName" />
+                            <ValidationMessage For="@(() => newParticipant.FirstName)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nachname</label>
+                            <InputText class="form-control" @bind-Value="newParticipant.LastName" />
+                            <ValidationMessage For="@(() => newParticipant.LastName)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <InputText type="email" class="form-control" @bind-Value="newParticipant.Email" />
+                            <ValidationMessage For="@(() => newParticipant.Email)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Geburtsdatum</label>
+                            <InputDate class="form-control" @bind-Value="newParticipant.BirthDate" />
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gewicht (kg)</label>
+                                <InputNumber class="form-control" @bind-Value="newParticipant.Weight" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Größe (cm)</label>
+                                <InputNumber class="form-control" @bind-Value="newParticipant.Height" />
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Profil erstellen</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Participant> participants = new();
+    private Participant? currentParticipant;
+    private int selectedParticipantId = 0;
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
+    
+    private Participant newParticipant = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadParticipants();
+    }
+
+    private async Task LoadParticipants()
+    {
+        await Task.Run(() =>
+        {
+            participants = ParticipantService.GetAllParticipants();
+        });
+        StateHasChanged();
+    }
+
+    private void LoadParticipant()
+    {
+        if (selectedParticipantId > 0)
+        {
+            currentParticipant = ParticipantService.GetParticipant(selectedParticipantId);
+            statusMessage = $"Angemeldet als: {currentParticipant?.FirstName} {currentParticipant?.LastName}";
+            isSuccess = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreateParticipant()
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                ParticipantService.AddParticipant(newParticipant);
+            });
+            
+            statusMessage = "Profil erfolgreich erstellt!";
+            isSuccess = true;
+            newParticipant = new Participant();
+            
+            await LoadParticipants();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Fehler beim Erstellen des Profils: {ex.Message}";
+            isSuccess = false;
+            StateHasChanged();
+        }
+    }
+}
+

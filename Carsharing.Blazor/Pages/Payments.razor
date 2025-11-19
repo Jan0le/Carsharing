@@ -1,0 +1,35 @@
+@page "/payments"
+@inject IPaymentService PaymentService
+@inject IParticipantService ParticipantService
+
+<PageTitle>Zahlungen - Carsharing</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>💳 Zahlungen</h2>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Zahlungshistorie</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Wählen Sie einen Teilnehmer, um die Zahlungshistorie anzuzeigen.</p>
+                    <p><strong>Registrierte Teilnehmer:</strong> @(ParticipantService.GetAllParticipants().Count)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+    }
+}
+

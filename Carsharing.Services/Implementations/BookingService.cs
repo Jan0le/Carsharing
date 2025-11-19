@@ -51,8 +51,8 @@ public class BookingService : IBookingService
 
         _bookings.Add(booking);
 
-        // Starte Zahlungsprozess
-        bool paymentSuccess = _paymentService.ProcessPayment(participantId, CalculatePrice(startTime, endTime));
+        // Starte Zahlungsprozess (automatisch bestätigt für Blazor)
+        bool paymentSuccess = _paymentService.ProcessPayment(participantId, CalculatePrice(startTime, endTime), confirmPayment: true);
 
         if (paymentSuccess)
         {
@@ -80,6 +80,11 @@ public class BookingService : IBookingService
     public List<Booking> GetUserBookings(int participantId)
     {
         return _bookings.Where(b => b.ParticipantId == participantId).ToList();
+    }
+
+    public List<Booking> GetAllBookings()
+    {
+        return _bookings.ToList();
     }
 
     private decimal CalculatePrice(DateTime start, DateTime end)

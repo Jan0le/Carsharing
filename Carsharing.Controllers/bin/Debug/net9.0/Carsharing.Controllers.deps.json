@@ -1,0 +1,56 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "Carsharing.Controllers/1.0.0": {
+        "dependencies": {
+          "Carsharing.Models": "1.0.0",
+          "Carsharing.Services": "1.0.0"
+        },
+        "runtime": {
+          "Carsharing.Controllers.dll": {}
+        }
+      },
+      "Carsharing.Models/1.0.0": {
+        "runtime": {
+          "Carsharing.Models.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Carsharing.Services/1.0.0": {
+        "dependencies": {
+          "Carsharing.Models": "1.0.0"
+        },
+        "runtime": {
+          "Carsharing.Services.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Carsharing.Controllers/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Carsharing.Models/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Carsharing.Services/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

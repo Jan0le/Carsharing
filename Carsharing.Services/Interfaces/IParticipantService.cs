@@ -8,5 +8,7 @@ public interface IParticipantService
     Participant? GetParticipant(int participantId);
     List<Participant> GetAllParticipants();
     void AddParticipant(Participant participant);
+    void UpdateParticipant(Participant participant);
+    void DeleteParticipant(int participantId);
 }
 

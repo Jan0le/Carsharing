@@ -8,14 +8,11 @@ public class PaymentService : IPaymentService
     private List<Payment> _payments = new();
     private int _nextId = 1;
 
-    public bool ProcessPayment(int participantId, decimal amount)
+    public bool ProcessPayment(int participantId, decimal amount, bool confirmPayment = true)
     {
-        Console.WriteLine($"Zahlungsanfrage für Teilnehmer {participantId}: {amount:C}");
-
         // Simuliere Zahlungsprozess
-        Console.Write("Zahlung bestätigen? (j/n): ");
-        string? response = Console.ReadLine()?.ToLower();
-        bool success = response == "j";
+        // In Blazor wird die Bestätigung über den confirmPayment Parameter gesteuert
+        bool success = confirmPayment;
 
         var payment = new Payment
         {
@@ -27,15 +24,6 @@ public class PaymentService : IPaymentService
         };
 
         _payments.Add(payment);
-
-        if (success)
-        {
-            Console.WriteLine("Zahlung erfolgreich!");
-        }
-        else
-        {
-            Console.WriteLine("Zahlung fehlgeschlagen!");
-        }
 
         return success;
     }

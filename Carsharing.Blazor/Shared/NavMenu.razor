@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Carsharing.Blazor</a>
+        <a class="navbar-brand" href="">🚗 Carsharing</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -11,17 +11,37 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
+                <span class="oi oi-home" aria-hidden="true"></span> Startseite
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="vehicles">
+                <span class="oi oi-car" aria-hidden="true"></span> Fahrzeuge
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            <NavLink class="nav-link" href="bookings">
+                <span class="oi oi-calendar" aria-hidden="true"></span> Buchungen
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="participants">
+                <span class="oi oi-people" aria-hidden="true"></span> Teilnehmer
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="payments">
+                <span class="oi oi-credit-card" aria-hidden="true"></span> Zahlungen
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bookingstatus">
+                <span class="oi oi-list" aria-hidden="true"></span> Buchungsstatus
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="profile">
+                <span class="oi oi-person" aria-hidden="true"></span> Profil
             </NavLink>
         </div>
     </nav>

@@ -43,7 +43,11 @@ public class Participant
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
+    public DateTime? BirthDate { get; set; }
+    public decimal? Weight { get; set; }
+    public decimal? Height { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
 ```
 
@@ -52,7 +56,11 @@ public class Participant
 - `FirstName`: Vorname
 - `LastName`: Nachname
 - `Email`: E-Mail-Adresse
+- `BirthDate`: Geburtsdatum (optional)
+- `Weight`: Gewicht in kg (optional)
+- `Height`: Größe in cm (optional)
 - `CreatedAt`: Zeitstempel der Erstellung
+- `UpdatedAt`: Zeitstempel der letzten Aktualisierung
 
 ### 2. IParticipantService Interface (`Carsharing.Services/Interfaces/IParticipantService.cs`)
 
@@ -274,10 +282,13 @@ if (participantService.ParticipantExists(participantId))
 ## Wichtige Hinweise
 
 ### ParticipantService
-- Verwendet **In-Memory-Liste** für Datenspeicherung
-- Automatische ID-Generierung (`_nextId`)
-- Testdaten werden im Konstruktor initialisiert
-- `CreatedAt` wird automatisch beim Hinzufügen gesetzt
+- Verwendet **SQLite Datenbank** (ParticipantDB.db) über Entity Framework Core
+- Datenbank: `ParticipantDB.db` (SQLite-Datei), Tabelle: `Participants`
+- Automatische ID-Generierung durch Datenbank
+- Testdaten werden beim ersten Start initialisiert (Seed-Methode)
+- `CreatedAt` und `UpdatedAt` werden automatisch gesetzt
+- CRUD-Operationen: Create, Read, Update, Delete
+- **Keine Installation erforderlich** - SQLite ist in .NET enthalten
 
 ### PaymentService
 - Verwendet **In-Memory-Liste** für Datenspeicherung
@@ -298,8 +309,11 @@ if (participantService.ParticipantExists(participantId))
 - **Model:** `Carsharing.Models/Entities/Participant.cs`
 - **Interface:** `Carsharing.Services/Interfaces/IParticipantService.cs`
 - **Service:** `Carsharing.Services/Implementations/ParticipantService.cs`
+- **DbContext:** `Carsharing.Data/DbContext/ParticipantDbContext.cs`
+- **Datenbank:** `ParticipantDB` (SQL Server)
 - **Controller:** `Carsharing.Controllers/Mvc/ParticipantController.cs`
 - **View:** `Carsharing.Controllers/Mvc/ParticipantView.cs`
+- **Blazor-Seite:** `Carsharing.Blazor/Pages/Profile.razor`
 
 ### PaymentService
 - **Model:** `Carsharing.Models/Entities/Payment.cs`

@@ -1,13 +1,32 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Carsharing.Blazor.Data;
+using Carsharing.Services.Interfaces;
+using Carsharing.Services.Implementations;
+using Carsharing.Data.DbContext;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+
+// Register Database Context
+builder.Services.AddDbContext<ParticipantDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("ParticipantDB") 
+        ?? "Data Source=ParticipantDB.db"));
+
+// Register Carsharing Services
+builder.Services.AddSingleton<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IParticipantService, ParticipantService>();
+builder.Services.AddSingleton<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IBookingService>(sp => 
+{
+    var vehicleService = sp.GetRequiredService<IVehicleService>();
+    var participantService = sp.GetRequiredService<IParticipantService>();
+    var paymentService = sp.GetRequiredService<IPaymentService>();
+    return new BookingService(vehicleService, participantService, paymentService);
+});
 
 var app = builder.Build();
 
