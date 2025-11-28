@@ -1,3 +1,5 @@
+using System;
+
 namespace Carsharing.Models.Entities;
 
 public class Booking

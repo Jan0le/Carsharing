@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "NwxiA+B+aC4=",
+  "dgSpecHash": "uUuSZyoDz+M=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Jan-Ole\\OneDrive - HTL Krems\\5.Klasse\\SEW\\Carsharing\\Carsharing.Blazor\\Carsharing.Blazor.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\Boris\\OneDrive - HTL Krems\\5BHITM\\SEW\\Carsharing\\Carsharing.Blazor\\Carsharing.Blazor.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Boris\\.nuget\\packages\\microsoft.netcore.app.ref\\7.0.20\\microsoft.netcore.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Boris\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\7.0.20\\microsoft.windowsdesktop.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Boris\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\7.0.20\\microsoft.aspnetcore.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Boris\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\7.0.20\\microsoft.netcore.app.host.win-x64.7.0.20.nupkg.sha512"
+  ],
   "logs": []
 }
