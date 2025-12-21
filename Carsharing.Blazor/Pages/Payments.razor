@@ -178,7 +178,9 @@
         [Range(1, int.MaxValue, ErrorMessage = "Bitte einen Teilnehmer auswählen.")]
         public int ParticipantId { get; set; }
 
-        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "Bitte einen gültigen Betrag (> 0) eingeben.")]
+        // IMPORTANT: don't use Range(typeof(decimal), "0.01", ...) because it parses using CurrentCulture
+        // and will throw in cultures where decimal separator is ',' (e.g. de-AT/de-DE).
+        [Range(0.01, 999999999, ErrorMessage = "Bitte einen gültigen Betrag (> 0) eingeben.")]
         public decimal Amount { get; set; }
 
         public bool ConfirmPayment { get; set; } = true;

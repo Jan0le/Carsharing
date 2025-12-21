@@ -95,6 +95,7 @@
                     <h6>Neues Profil erstellen</h6>
                     <EditForm Model="@newParticipant" OnValidSubmit="@CreateParticipant">
                         <DataAnnotationsValidator />
+                        <ValidationSummary />
                         
                         <div class="mb-3">
                             <label class="form-label">Vorname</label>
@@ -117,16 +118,19 @@
                         <div class="mb-3">
                             <label class="form-label">Geburtsdatum</label>
                             <InputDate class="form-control" @bind-Value="newParticipant.BirthDate" />
+                            <ValidationMessage For="@(() => newParticipant.BirthDate)" />
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Gewicht (kg)</label>
                                 <InputNumber class="form-control" @bind-Value="newParticipant.Weight" />
+                                <ValidationMessage For="@(() => newParticipant.Weight)" />
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Größe (cm)</label>
                                 <InputNumber class="form-control" @bind-Value="newParticipant.Height" />
+                                <ValidationMessage For="@(() => newParticipant.Height)" />
                             </div>
                         </div>
                         
