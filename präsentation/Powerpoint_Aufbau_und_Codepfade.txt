@@ -1,0 +1,152 @@
+PowerPoint-Aufbau (Guideline) + Code-Pfade – Carsharing Plattform
+=================================================================
+
+Wichtig:
+- Der Beispiel-Code in der Aufgabenbeschreibung kann abweichen.
+- Präsentiert werden sollen ALLE Klassen, die in der Vorlage genannt werden.
+- Hier steht: Folienstruktur + wo ihr den Code im aktuellen Repo findet.
+
+
+0) Titel & Agenda (1–2 Folien)
+-----------------------------
+Folie: Titel
+- “Carsharing-Plattform – Services & Integration”
+- Team: Maxl / Boris / Ole
+
+Folie: Agenda
+- Ole: VehicleService (Model, Service, Controller, View)
+- Boris: BookingService (Model, Service, Controller, View + Integration)
+- Maxl: ParticipantService & PaymentService (Models, Services, Controller, Views)
+- Gemeinsame Integration: “Hauptprogramm / Zusammenführen / Build”
+
+
+1) Ole – VehicleService (Teilpräsentation)
+------------------------------------------
+Ziel-Folien:
+1. Projektstruktur/Schichten (Model → Service → Controller → View)
+2. Vehicle Model (Entity) – Felder & Statuswerte
+3. VehicleService – Kernmethoden (GetAvailable/GetAll/GetVehicle/Update/Add)
+4. VehicleController – Orchestrierung + Validierung
+5. VehicleView – Konsolen-UI (Display/GetNewVehicleDetails/Menu)
+
+Klassen (müssen präsentiert werden) + Codepfade im Repo:
+- Vehicle (Model)
+  - `Carsharing.Models/Entities/Vehicle.cs`
+- VehicleService (Domain/Service)
+  - `Carsharing.Services/Implementations/VehicleService.cs`
+  - Interface: `Carsharing.Services/Interfaces/IVehicleService.cs`
+- VehicleController
+  - `Carsharing.Controllers/Mvc/VehicleController.cs`
+- VehicleView
+  - `Carsharing.Controllers/Mvc/VehicleView.cs`
+
+Optional (falls ihr auch die Web-View zeigen wollt):
+- Fahrzeuge-Seite (Blazor UI)
+  - `Carsharing.Blazor/Pages/Vehicles.razor`
+
+
+2) Boris – BookingService (Teilpräsentation)
+--------------------------------------------
+Ziel-Folien:
+1. Projektstruktur + Rolle als “Orchestrator”
+2. Booking Model (Entity) – Statuswerte (Pending/Confirmed/Cancelled)
+3. BookingService – Ablauf CreateBooking → Payment → ConfirmBooking → VehicleStatus
+4. BookingController – Eingabe/Validierung/Aufruf
+5. BookingView – Konsolen-UI (GetBookingDetails/Display/Menu)
+6. Integration: Welche Services werden genutzt (Vehicle/Participant/Payment)
+
+Klassen (müssen präsentiert werden) + Codepfade im Repo:
+- Booking (Model)
+  - `Carsharing.Models/Entities/Booking.cs`
+- BookingService (Domain/Service)
+  - `Carsharing.Services/Implementations/BookingService.cs`
+  - Interface: `Carsharing.Services/Interfaces/IBookingService.cs`
+- BookingController
+  - `Carsharing.Controllers/Mvc/BookingController.cs`
+- BookingView
+  - `Carsharing.Controllers/Mvc/BookingView.cs`
+
+Wichtige “Integration”-Stellen (Service-Mehrfachnutzung):
+- BookingService nutzt:
+  - `IVehicleService` (`Carsharing.Services/Interfaces/IVehicleService.cs`)
+  - `IParticipantService` (`Carsharing.Services/Interfaces/IParticipantService.cs`)
+  - `IPaymentService` (`Carsharing.Services/Interfaces/IPaymentService.cs`)
+
+Optional (Web-View):
+- Buchungsformular (Blazor)
+  - `Carsharing.Blazor/Pages/Bookings.razor`
+- Buchungsstatus (Blazor)
+  - `Carsharing.Blazor/Pages/BookingStatus.razor`
+
+
+3) Maxl – ParticipantService & PaymentService (Teilpräsentation)
+---------------------------------------------------------------
+Ziel-Folien:
+1. Warum “Shared Services”? (werden von anderen Services genutzt)
+2. Participant Model + CRUD/Existenz-Checks
+3. ParticipantService – Kernmethoden (Exists/Get/GetAll/Add)
+4. Payment Model – Statuswerte (Pending/Completed/Failed)
+5. PaymentService – ProcessPayment + History
+6. Controller & Views: ParticipantController/ParticipantView + PaymentController/PaymentView
+7. Wiederverwendbarkeit: BookingService ruft Participant+Payment auf
+
+Klassen (müssen präsentiert werden) + Codepfade im Repo:
+- Participant (Model)
+  - `Carsharing.Models/Entities/Participant.cs`
+- Payment (Model)
+  - `Carsharing.Models/Entities/Payment.cs`
+- ParticipantService (Domain/Service)
+  - `Carsharing.Services/Implementations/ParticipantService.cs`
+  - Interface: `Carsharing.Services/Interfaces/IParticipantService.cs`
+- PaymentService (Domain/Service)
+  - `Carsharing.Services/Implementations/PaymentService.cs`
+  - Interface: `Carsharing.Services/Interfaces/IPaymentService.cs`
+- ParticipantController
+  - `Carsharing.Controllers/Mvc/ParticipantController.cs`
+- ParticipantView
+  - `Carsharing.Controllers/Mvc/ParticipantView.cs`
+- PaymentController
+  - `Carsharing.Controllers/Mvc/PaymentController.cs`
+- PaymentView
+  - `Carsharing.Controllers/Mvc/PaymentView.cs`
+
+Optional (Web-View):
+- Teilnehmer-Seite (Blazor)
+  - `Carsharing.Blazor/Pages/Participants.razor`
+- Profil-Seite (Blazor)
+  - `Carsharing.Blazor/Pages/Profile.razor`
+- Payments-Seite (Blazor)
+  - `Carsharing.Blazor/Pages/Payments.razor`
+
+
+4) Gemeinsame Integration – Hauptprogramm (1 Teil / gemeinsamer Block)
+----------------------------------------------------------------------
+Ziel-Folien:
+1. “Wie hängt alles zusammen?” (Service-Graph/Sequence)
+2. Initialisierung/DI (wer erstellt was)
+3. Menüfluss (MainMenu → SubMenus)
+4. “Zusammenführen” + Build/Run
+
+Hinweis zur Code-Lage im Repo:
+- In eurer aktuellen Lösung ist das “Hauptprogramm” nicht als reine Console-App in 1 Datei,
+  sondern verteilt (Blazor `Carsharing.Blazor/Program.cs` + Service-Registrierung).
+
+Relevante Dateien im Repo:
+- Blazor Startup/DI:
+  - `Carsharing.Blazor/Program.cs`
+- Dokumentation Interaktionen (entspricht der Integration-Folie):
+  - `docs/Interaktionen_Infosheet.md`
+
+Build/Run (wie in der Vorlage, nur angepasst):
+- Gesamtlösung: `Carsharing.sln`
+- PaymentService-Microservice separat: `PaymentService/MicroservicePayment.sln`
+
+
+5) Pflicht-Checkliste (für eure Präsentation)
+---------------------------------------------
+- Jede genannte Klasse aus der Vorlage wurde gezeigt (siehe Listen oben).
+- Pro Teilpräsentation: kurze Schicht-Erklärung + 1–2 Code-Auszüge.
+- Besonderes Augenmerk “mehrfach genutzte Services”:
+  - `ParticipantService` und `PaymentService` werden von `BookingService` genutzt.
+
+

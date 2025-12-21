@@ -1,0 +1,87 @@
+Aufteilung – PaymentService Microservice (Model / Domain / RestApi / WebGUI)
+
+Team:
+- Maxl
+- Boris
+- Ole
+
+Ziel der Präsentation:
+- Fokus ausschließlich auf dem neuen PaymentService-Microservice unter `PaymentService/`
+- Schichten erklären, zentrale Code-Auszüge zeigen, Demo live (WebGUI + Swagger)
+- Backup-Strategie: ausgeblendete Folien mit Screenshots der Views/Swagger/Tests
+
+Teil 1 – Boris (Architektur / Schichten / Integration)
+- Motivation: Warum Schichten? (Trennung von Verantwortung, Wartbarkeit, Testbarkeit)
+- Projektstruktur (wie Fitness-Beispiel): Model → Domain → RestApi/WebGUI
+- Dependency-Fluss (Diagramm)
+- Dependency Injection in `Program.cs`
+  - RestApi: `PaymentService/RestApi/Program.cs`
+  - WebGUI: `PaymentService/WebGUI/Program.cs`
+
+Teil 2 – Maxl (Domain / Services / Wiederverwendbarkeit)
+- Repository Pattern:
+  - `Domain.Interfaces.IRepositoryAsync`
+  - `Domain.Repositories.ARepositoryAsync`
+  - `Domain.Repositories.PaymentRepository`
+- Businesslogik & Regeln:
+  - Validation (participantId/amount)
+  - Status-Entscheidung (Completed vs Failed)
+  - Zugriff über Repository (persistente Speicherung in SQLite)
+- Code-Auszüge:
+  - `PaymentService/Domain/Services/PaymentService.cs`
+
+Teil 3 – Ole (Views / Demo / Tests)
+- WebGUI:
+  - `PaymentService/WebGUI/Controllers/PaymentController.cs`
+  - `PaymentService/WebGUI/Views/Payment/Index.cshtml`
+- Live-Demo (WebGUI + Swagger), inkl. Fallback auf ausgeblendete Folien
+- Unit-Tests (Auszug) + Screenshot vom Testlauf:
+  - `PaymentService/Domain.Tests/*`
+  - `präsentation/assets/unit_tests.png`
+
+Aufteilung – PaymentService Microservice (Model/Domain/RestApi/WebGUI)
+=========================================================
+
+Team:
+- Maxl
+- Boris
+- Ole
+
+Hinweis: Fokus der Präsentation ist ausschließlich der neue Microservice unter `PaymentService/`.
+
+1) Boris – Teil 1 (Architektur / Schichten / Integration)
+--------------------------------------------------------
+- Motivation: Warum Schichten? (Wartbarkeit, Testbarkeit, Wiederverwendbarkeit)
+- Projektstruktur wie im Fitness-Beispiel erklären:
+  - Model → Domain → RestApi / WebGUI
+- Dependency-Fluss/Diagramm (wer referenziert wen)
+- Dependency Injection (DI) zeigen:
+  - `PaymentService/RestApi/Program.cs`
+  - `PaymentService/WebGUI/Program.cs`
+- Kurz: Datenfluss Request → Controller → Domain Service → Repository → DbContext
+
+2) Maxl – Teil 2 (Domain/Services, Wiederverwendbarkeit)
+--------------------------------------------------------
+- Repository-Pattern erklären:
+  - `Domain.Interfaces.IRepositoryAsync`
+  - `Domain.Repositories.ARepositoryAsync`
+  - `Domain.Repositories.PaymentRepository`
+- Domain-Service `Domain.Services.PaymentService` erklären:
+  - Validierung (ParticipantId/Betrag)
+  - Status-Regeln (Completed/Failed)
+  - Wiederverwendbarkeit in RestApi und WebGUI (gleicher Domain-Layer)
+- Code-Auszüge als „Kernlogik“
+
+3) Ole – Teil 3 (Views, Live-Demo, Tests + Backups)
+---------------------------------------------------
+- WebGUI:
+  - `WebGUI.Controllers.PaymentController`
+  - `Views/Payment/Index.cshtml`
+- Live-Demo Ablauf (Swagger + WebGUI) präsentieren
+- Backup-Strategie:
+  - Folien mit Screenshots sind in der PPTX ausgeblendet
+  - Falls Live-Demo ausfällt, auf ausgeblendete Folien wechseln
+- Unit-Tests:
+  - Auszug aus Tests + Screenshot vom Testlauf
+
+

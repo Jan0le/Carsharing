@@ -1,0 +1,28 @@
+# Build artifacts
+**/bin/
+**/obj/
+*.dll
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+apphost.exe
+
+# Rider / IDE
+.idea/
+.vs/
+
+# OS / temp
+Thumbs.db
+Desktop.ini
+
+# SQLite transient files
+*.db-shm
+*.db-wal
+
+# PaymentService demo DB files (generated locally)
+PaymentService/*.db
+
+# PowerPoint lock/temp files
+~$*.pptx
+
+
