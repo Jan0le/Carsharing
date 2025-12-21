@@ -57,6 +57,16 @@ public class PaymentService
 
         return _paymentRepository.ReadAsync(paymentId);
     }
+
+    public async Task<List<int>> GetAvailableParticipantIdsAsync()
+    {
+        var allPayments = await _paymentRepository.ReadAllAsync();
+        return allPayments
+            .Select(p => p.ParticipantId)
+            .Distinct()
+            .OrderBy(id => id)
+            .ToList();
+    }
 }
 
 

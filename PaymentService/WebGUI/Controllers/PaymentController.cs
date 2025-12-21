@@ -21,7 +21,8 @@ public class PaymentController : Controller
         var vm = new PaymentPageViewModel
         {
             ParticipantId = participantId,
-            Message = TempData["Message"] as string
+            Message = TempData["Message"] as string,
+            AvailableParticipantIds = await _paymentService.GetAvailableParticipantIdsAsync()
         };
 
         if (participantId.HasValue && participantId.Value > 0)

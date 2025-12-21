@@ -11,15 +11,109 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="card">
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" @onclick="() => statusMessage = string.Empty"></button>
+        </div>
+    }
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6">
+            <div class="card h-100">
                 <div class="card-header bg-primary text-white">
-                    <h5>Zahlungshistorie</h5>
+                    <h5 class="mb-0">Zahlung erstellen</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Wählen Sie einen Teilnehmer, um die Zahlungshistorie anzuzeigen.</p>
-                    <p><strong>Registrierte Teilnehmer:</strong> @(ParticipantService.GetAllParticipants().Count)</p>
+                    <p class="text-muted">Wählen Sie einen Teilnehmer und geben Sie den Betrag ein.</p>
+
+                    <EditForm OnValidSubmit="CreatePayment">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Teilnehmer</label>
+                            <InputSelect class="form-select" @bind-Value="selectedParticipantId">
+                                <option value="0">-- Bitte wählen --</option>
+                                @foreach (var p in participants)
+                                {
+                                    <option value="@p.ParticipantId">@p.FirstName @p.LastName (@p.Email)</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Betrag (€)</label>
+                            <InputNumber class="form-control" @bind-Value="amount" />
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <InputCheckbox class="form-check-input" @bind-Value="confirmPayment" />
+                            <label class="form-check-label">Zahlung bestätigen (sonst “Failed”)</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Zahlung ausführen</button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" @onclick="LoadHistory">Historie laden</button>
+                    </EditForm>
+
+                    <hr />
+                    <p class="mb-0"><strong>Registrierte Teilnehmer:</strong> @participants.Count</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Zahlungshistorie</h5>
+                    <span class="badge bg-light text-dark">Teilnehmer: @(selectedParticipantId > 0 ? $"#{selectedParticipantId}" : "-")</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (selectedParticipantId <= 0)
+                    {
+                        <div class="p-3 text-muted">Wählen Sie einen Teilnehmer, um die Zahlungshistorie anzuzeigen.</div>
+                    }
+                    else if (payments.Count == 0)
+                    {
+                        <div class="p-3 text-muted">Keine Zahlungen für Teilnehmer #@selectedParticipantId vorhanden.</div>
+                    }
+                    else
+                    {
+                        <table class="table table-striped mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Betrag</th>
+                                <th>Status</th>
+                                <th>Erstellt am</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var pay in payments.OrderByDescending(x => x.CreatedAt))
+                            {
+                                <tr>
+                                    <td>@pay.PaymentId</td>
+                                    <td>@pay.Amount.ToString("C")</td>
+                                    <td>
+                                        @if (pay.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">Completed</span>
+                                        }
+                                        else if (pay.Status == "Failed")
+                                        {
+                                            <span class="badge bg-danger">Failed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">@pay.Status</span>
+                                        }
+                                    </td>
+                                    <td>@pay.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
                 </div>
             </div>
         </div>
@@ -27,9 +121,65 @@
 </div>
 
 @code {
+    private List<Participant> participants = new();
+    private int selectedParticipantId = 0;
+
+    private decimal amount = 0;
+    private bool confirmPayment = true;
+
+    private List<Payment> payments = new();
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
+
     protected override async Task OnInitializedAsync()
     {
-        await Task.CompletedTask;
+        participants = ParticipantService.GetAllParticipants();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task LoadHistory()
+    {
+        if (selectedParticipantId <= 0)
+        {
+            statusMessage = "Bitte zuerst einen Teilnehmer auswählen.";
+            isSuccess = false;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        payments = PaymentService.GetPaymentHistory(selectedParticipantId);
+        statusMessage = $"Historie geladen: {payments.Count} Zahlungen für Teilnehmer #{selectedParticipantId}.";
+        isSuccess = true;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task CreatePayment()
+    {
+        if (selectedParticipantId <= 0)
+        {
+            statusMessage = "Bitte zuerst einen Teilnehmer auswählen.";
+            isSuccess = false;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        if (amount <= 0)
+        {
+            statusMessage = "Bitte einen gültigen Betrag (> 0) eingeben.";
+            isSuccess = false;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        var success = PaymentService.ProcessPayment(selectedParticipantId, amount, confirmPayment);
+        payments = PaymentService.GetPaymentHistory(selectedParticipantId);
+
+        statusMessage = success
+            ? $"Zahlung erfolgreich erstellt. (Historie: {payments.Count})"
+            : $"Zahlung fehlgeschlagen (confirm=false). (Historie: {payments.Count})";
+        isSuccess = success;
+
+        amount = 0;
+        confirmPayment = true;
+
+        return InvokeAsync(StateHasChanged);
     }
 }
 

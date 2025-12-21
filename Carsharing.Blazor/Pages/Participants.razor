@@ -70,11 +70,9 @@
 
     private async Task LoadParticipants()
     {
-        await Task.Run(() =>
-        {
-            participants = ParticipantService.GetAllParticipants();
-        });
-        StateHasChanged();
+        // IMPORTANT: don't use Task.Run with DbContext-backed services (DbContext is not thread-safe)
+        participants = ParticipantService.GetAllParticipants();
+        await InvokeAsync(StateHasChanged);
     }
 }
 

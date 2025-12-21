@@ -81,7 +81,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Bestehendes Profil auswählen</label>
-                        <InputSelect class="form-select" @bind-Value="selectedParticipantId" @bind-Value:after="LoadParticipant">
+                        <InputSelect class="form-select" @bind-Value="selectedParticipantId" @onchange="OnParticipantChanged">
                             <option value="0">-- Bitte wählen --</option>
                             @foreach (var participant in participants)
                             {
@@ -154,45 +154,57 @@
 
     private async Task LoadParticipants()
     {
-        await Task.Run(() =>
-        {
-            participants = ParticipantService.GetAllParticipants();
-        });
-        StateHasChanged();
+        // IMPORTANT: don't use Task.Run with DbContext-backed services (DbContext is not thread-safe)
+        participants = ParticipantService.GetAllParticipants();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void LoadParticipant()
+    private Task OnParticipantChanged(ChangeEventArgs _)
     {
         if (selectedParticipantId > 0)
         {
             currentParticipant = ParticipantService.GetParticipant(selectedParticipantId);
             statusMessage = $"Angemeldet als: {currentParticipant?.FirstName} {currentParticipant?.LastName}";
             isSuccess = true;
-            StateHasChanged();
+            return InvokeAsync(StateHasChanged);
         }
+
+        currentParticipant = null;
+        return InvokeAsync(StateHasChanged);
     }
 
     private async Task CreateParticipant()
     {
         try
         {
-            await Task.Run(() =>
-            {
-                ParticipantService.AddParticipant(newParticipant);
-            });
+            var email = newParticipant.Email;
+            ParticipantService.AddParticipant(newParticipant);
             
             statusMessage = "Profil erfolgreich erstellt!";
             isSuccess = true;
-            newParticipant = new Participant();
             
             await LoadParticipants();
-            StateHasChanged();
+
+            // Auto-select the newly created participant (best-effort)
+            var created = participants
+                .OrderByDescending(p => p.ParticipantId)
+                .FirstOrDefault(p => p.Email == email) ?? participants.OrderByDescending(p => p.ParticipantId).FirstOrDefault();
+
+            if (created is not null)
+            {
+                selectedParticipantId = created.ParticipantId;
+                currentParticipant = created;
+                statusMessage = $"Profil erstellt & angemeldet als: {created.FirstName} {created.LastName}";
+            }
+
+            newParticipant = new Participant();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
             statusMessage = $"Fehler beim Erstellen des Profils: {ex.Message}";
             isSuccess = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

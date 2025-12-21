@@ -11,6 +11,8 @@ public class PaymentPageViewModel
     public string? Message { get; set; }
 
     public List<Payment> Payments { get; set; } = new();
+    
+    public List<int> AvailableParticipantIds { get; set; } = new();
 }
 
 
