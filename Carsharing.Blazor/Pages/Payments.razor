@@ -28,27 +28,29 @@
                 <div class="card-body">
                     <p class="text-muted">Wählen Sie einen Teilnehmer und geben Sie den Betrag ein.</p>
 
-                    <EditForm OnValidSubmit="CreatePayment">
+                    <EditForm Model="@paymentForm" OnValidSubmit="CreatePayment">
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
                             <label class="form-label">Teilnehmer</label>
-                            <InputSelect class="form-select" @bind-Value="selectedParticipantId">
+                            <InputSelect class="form-select" @bind-Value="paymentForm.ParticipantId">
                                 <option value="0">-- Bitte wählen --</option>
                                 @foreach (var p in participants)
                                 {
                                     <option value="@p.ParticipantId">@p.FirstName @p.LastName (@p.Email)</option>
                                 }
                             </InputSelect>
+                            <ValidationMessage For="@(() => paymentForm.ParticipantId)" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Betrag (€)</label>
-                            <InputNumber class="form-control" @bind-Value="amount" />
+                            <InputNumber class="form-control" @bind-Value="paymentForm.Amount" />
+                            <ValidationMessage For="@(() => paymentForm.Amount)" />
                         </div>
 
                         <div class="form-check mb-3">
-                            <InputCheckbox class="form-check-input" @bind-Value="confirmPayment" />
+                            <InputCheckbox class="form-check-input" @bind-Value="paymentForm.ConfirmPayment" />
                             <label class="form-check-label">Zahlung bestätigen (sonst “Failed”)</label>
                         </div>
 
@@ -66,16 +68,16 @@
             <div class="card h-100">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Zahlungshistorie</h5>
-                    <span class="badge bg-light text-dark">Teilnehmer: @(selectedParticipantId > 0 ? $"#{selectedParticipantId}" : "-")</span>
+                    <span class="badge bg-light text-dark">Teilnehmer: @(paymentForm.ParticipantId > 0 ? $"#{paymentForm.ParticipantId}" : "-")</span>
                 </div>
                 <div class="card-body p-0">
-                    @if (selectedParticipantId <= 0)
+                    @if (paymentForm.ParticipantId <= 0)
                     {
                         <div class="p-3 text-muted">Wählen Sie einen Teilnehmer, um die Zahlungshistorie anzuzeigen.</div>
                     }
                     else if (payments.Count == 0)
                     {
-                        <div class="p-3 text-muted">Keine Zahlungen für Teilnehmer #@selectedParticipantId vorhanden.</div>
+                        <div class="p-3 text-muted">Keine Zahlungen für Teilnehmer #@paymentForm.ParticipantId vorhanden.</div>
                     }
                     else
                     {
@@ -122,10 +124,7 @@
 
 @code {
     private List<Participant> participants = new();
-    private int selectedParticipantId = 0;
-
-    private decimal amount = 0;
-    private bool confirmPayment = true;
+    private PaymentFormModel paymentForm = new();
 
     private List<Payment> payments = new();
     private string statusMessage = string.Empty;
@@ -134,52 +133,55 @@
     protected override async Task OnInitializedAsync()
     {
         participants = ParticipantService.GetAllParticipants();
+        // optional default selection for convenience
+        if (participants.Count > 0 && paymentForm.ParticipantId <= 0)
+        {
+            paymentForm.ParticipantId = participants[0].ParticipantId;
+        }
         await InvokeAsync(StateHasChanged);
     }
 
     private Task LoadHistory()
     {
-        if (selectedParticipantId <= 0)
+        if (paymentForm.ParticipantId <= 0)
         {
             statusMessage = "Bitte zuerst einen Teilnehmer auswählen.";
             isSuccess = false;
             return InvokeAsync(StateHasChanged);
         }
 
-        payments = PaymentService.GetPaymentHistory(selectedParticipantId);
-        statusMessage = $"Historie geladen: {payments.Count} Zahlungen für Teilnehmer #{selectedParticipantId}.";
+        payments = PaymentService.GetPaymentHistory(paymentForm.ParticipantId);
+        statusMessage = $"Historie geladen: {payments.Count} Zahlungen für Teilnehmer #{paymentForm.ParticipantId}.";
         isSuccess = true;
         return InvokeAsync(StateHasChanged);
     }
 
     private Task CreatePayment()
     {
-        if (selectedParticipantId <= 0)
-        {
-            statusMessage = "Bitte zuerst einen Teilnehmer auswählen.";
-            isSuccess = false;
-            return InvokeAsync(StateHasChanged);
-        }
-
-        if (amount <= 0)
-        {
-            statusMessage = "Bitte einen gültigen Betrag (> 0) eingeben.";
-            isSuccess = false;
-            return InvokeAsync(StateHasChanged);
-        }
-
-        var success = PaymentService.ProcessPayment(selectedParticipantId, amount, confirmPayment);
-        payments = PaymentService.GetPaymentHistory(selectedParticipantId);
+        // EditForm validation already ensures these values are valid
+        var success = PaymentService.ProcessPayment(paymentForm.ParticipantId, paymentForm.Amount, paymentForm.ConfirmPayment);
+        payments = PaymentService.GetPaymentHistory(paymentForm.ParticipantId);
 
         statusMessage = success
             ? $"Zahlung erfolgreich erstellt. (Historie: {payments.Count})"
             : $"Zahlung fehlgeschlagen (confirm=false). (Historie: {payments.Count})";
         isSuccess = success;
 
-        amount = 0;
-        confirmPayment = true;
+        paymentForm.Amount = 0;
+        paymentForm.ConfirmPayment = true;
 
         return InvokeAsync(StateHasChanged);
+    }
+
+    private sealed class PaymentFormModel
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Bitte einen Teilnehmer auswählen.")]
+        public int ParticipantId { get; set; }
+
+        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "Bitte einen gültigen Betrag (> 0) eingeben.")]
+        public decimal Amount { get; set; }
+
+        public bool ConfirmPayment { get; set; } = true;
     }
 }
 
