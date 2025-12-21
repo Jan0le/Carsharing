@@ -11,6 +11,11 @@
     <ProjectReference Include="..\Carsharing.Controllers\Carsharing.Controllers.csproj" />
     <ProjectReference Include="..\Carsharing.Services\Carsharing.Services.csproj" />
     <ProjectReference Include="..\Carsharing.Models\Carsharing.Models.csproj" />
+    <ProjectReference Include="..\Carsharing.Data\Carsharing.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
